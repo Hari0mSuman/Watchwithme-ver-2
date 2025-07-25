@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}{{ room.name }} - WatchWithMe{% endblock %}
+
+{% block head %}
+<style>
+    .chat-container {
+        height: calc(100vh - 200px);
+    }
+    
+    .video-container {
+        height: calc(100vh - 150px);
+    }
+    
+    #chatMessages {
+        height: calc(100% - 120px);
+        overflow-y: auto;
+    }
+    
+    .message {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 770px) {
+        #chatSidebar {
+            width: 100vw;
+            max-width: 90vw;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 40;
+            background: #23272a;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+        }
+        #chatSidebar.open {
+            transform: translateX(0);
+        }
+        #chatToggleBtn {
+            display: block !important;
+        }
+    }
+    @media (min-width: 771px) {
+        #chatSidebar {
+            transform: none !important;
+            position: static !important;
+            width: 20rem;
+            height: auto;
+            box-shadow: none;
+        }
+        #chatToggleBtn {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-discord-darkest">
+    <!-- Video Section -->
+    <div class="flex-1 flex flex-col">
+        <!-- Room Header -->
+        <div class="bg-discord-darker p-4 border-b border-gray-600">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold text-white">{{ room.name }}</h1>
+                    <p class="text-discord-text">Room Code: <span class="font-mono">{{ room.room_code }}</span></p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if member.role == 'host' %}
+                        <span class="px-3 py-1 bg-green-600 text-white rounded-full text-sm">
+                            <i class="fas fa-crown mr-1"></i>Host
+                        </span>
+                    {% else %}
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-full text-sm">
+                            <i class="fas fa-user mr-1"></i>Guest
+                        </span>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('leave_room', room_code=room.room_code) }}" class="inline">
+                        <button type="submit" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                                onclick="return confirm('Are you sure you want to leave this room?')">
+                            <i class="fas fa-door-open mr-1"></i>Leave
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Controls (Host Only) -->
+        {% if member.role == 'host' %}
+        <div class="bg-discord-dark p-4 border-b border-gray-600">
+            <div class="space-y-4">
+                <!-- YouTube URL Input -->
+                <div class="flex space-x-2">
+                    <input type="text" 
+                           id="youtubeUrl" 
+                           placeholder="Paste YouTube URL here..." 
+                           class="flex-1 px-4 py-2 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent">
+                    <button onclick="loadYouTubeVideo()" 
+                            class="bg-youtube-red hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fab fa-youtube mr-2"></i>Load
+                    </button>
+                </div>
+
+                <!-- File Upload -->
+                <div class="flex items-center space-x-2">
+                    <input type="file" 
+                           id="videoFile" 
+                           accept="video/*" 
+                           class="hidden">
+                    <button onclick="document.getElementById('videoFile').click()" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Upload Video
+                    </button>
+                    <div id="uploadProgress" class="hidden">
+                        <div class="bg-gray-700 rounded-full h-2 w-32">
+                            <div id="uploadBar" class="bg-green-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Video Player -->
+        <div class="flex-1 bg-black flex items-center justify-center relative">
+            <div id="videoContainer" class="w-full h-full">
+                {% if room.current_video_url %}
+                    {% if room.current_video_type == 'youtube' %}
+                        <div id="youtubePlayer" class="w-full h-full"></div>
+                    {% elif room.current_video_type == 'local' %}
+                        <video id="localVideo" 
+                               controls 
+                               class="w-full h-full object-contain"
+                               {% if member.role != 'host' %}controlslist="nodownload nofullscreen noremoteplayback"{% endif %}>
+                            <source src="{{ room.current_video_url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-discord-text">
+                        <i class="fas fa-play-circle text-6xl mb-4"></i>
+                        <h3 class="text-xl font-semibold mb-2">No video loaded</h3>
+                        {% if member.role == 'host' %}
+                            <p>Load a YouTube video or upload a file to get started</p>
+                        {% else %}
+                            <p>Waiting for the host to load a video...</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Toggle Button (Mobile Only) -->
+    <button id="chatToggleBtn" class="fixed bottom-6 right-6 z-50 bg-discord-accent text-white p-4 rounded-full shadow-lg md:hidden" style="display: none;">
+        <i class="fas fa-comments text-2xl"></i>
+    </button>
+
+    <!-- Chat Sidebar -->
+    <div id="chatSidebar" class="w-80 bg-discord-darker flex flex-col chat-container transition-transform duration-300 md:translate-x-0 fixed md:static right-0 top-0 h-full z-40" style="transform: translateX(100%);">
+        <!-- Chat Header -->
+        <div class="p-4 border-b border-gray-600">
+            <h2 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-comments mr-2"></i>Chat
+            </h2>
+        </div>
+
+        <!-- Members List -->
+        <div class="p-4 border-b border-gray-600">
+            <h3 class="text-sm font-semibold text-discord-text uppercase tracking-wide mb-2">
+                Members ({{ members|length }})
+            </h3>
+            <div class="space-y-2">
+                {% for room_member in members %}
+                    <div class="flex items-center space-x-2">
+                        {% if room_member.user.profile_image_url %}
+                            <img src="{{ room_member.user.profile_image_url }}" 
+                                 alt="Profile" 
+                                 class="w-6 h-6 rounded-full object-cover">
+                        {% else %}
+                            <div class="w-6 h-6 bg-discord-accent rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-xs"></i>
+                            </div>
+                        {% endif %}
+                        <span class="text-discord-text text-sm">{{ room_member.user.display_name }}</span>
+                        {% if room_member.role == 'host' %}
+                            <i class="fas fa-crown text-yellow-500 text-xs"></i>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="flex-1 p-4 space-y-3 overflow-y-auto">
+            {% for message in messages %}
+                <div class="message">
+                    {% if message.message_type == 'system' %}
+                        <div class="text-center">
+                            <span class="text-xs text-gray-500 bg-discord-darkest px-2 py-1 rounded">
+                                {{ message.message }}
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium text-white">{{ message.user.display_name }}</span>
+                                <span class="text-xs text-gray-500">{{ message.formatted_time }}</span>
+                            </div>
+                            <p class="text-discord-text text-sm">{{ message.message }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Chat Input -->
+        <div class="p-4 border-t border-gray-600">
+            <form id="chatForm" class="flex space-x-2">
+                <input type="text" 
+                       id="chatInput" 
+                       placeholder="Type a message..." 
+                       class="flex-1 px-3 py-2 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent text-sm">
+                <button type="submit" 
+                        class="bg-discord-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- YouTube API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- Room-specific JavaScript -->
+<script src="{{ url_for('static', filename='room.js') }}"></script>
+
+<script>
+    // Initialize room when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeRoom(
+            '{{ room.room_code }}', 
+            {{ 'true' if member.role == 'host' else 'false' }}, 
+            '{{ room.current_video_type or "" }}', 
+            '{{ room.current_video_url or "" }}'
+        );
+
+        const chatSidebar = document.getElementById('chatSidebar');
+        const chatToggleBtn = document.getElementById('chatToggleBtn');
+
+        function handleResize() {
+            if (window.innerWidth <= 770) {
+                chatSidebar.classList.remove('open');
+                chatSidebar.style.transform = 'translateX(100%)';
+                chatToggleBtn.style.display = 'block';
+            } else {
+                chatSidebar.classList.add('open');
+                chatSidebar.style.transform = 'none';
+                chatToggleBtn.style.display = 'none';
+            }
+        }
+
+        chatToggleBtn.addEventListener('click', function() {
+            chatSidebar.classList.toggle('open');
+            if (chatSidebar.classList.contains('open')) {
+                chatSidebar.style.transform = 'translateX(0)';
+            } else {
+                chatSidebar.style.transform = 'translateX(100%)';
+            }
+        });
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    });
+</script>
+{% endblock %}

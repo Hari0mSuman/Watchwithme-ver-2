@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Home - WatchWithMe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pt-8">
+    {% if show_landing %}
+        <!-- Landing Page for Logged Out Users -->
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="space-y-8">
+                <!-- Hero Section -->
+                <div class="space-y-6">
+                    <h1 class="text-5xl md:text-6xl font-bold text-white">
+                        Watch <span class="text-youtube-red">Together</span>
+                    </h1>
+                    <p class="text-xl text-discord-text max-w-2xl mx-auto">
+                        Create rooms, invite friends, and enjoy synchronized video watching with real-time chat. 
+                        Share YouTube videos or upload your own files.
+                    </p>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid md:grid-cols-3 gap-8 mt-12">
+                    <div class="bg-discord-darker p-6 rounded-xl">
+                        <div class="text-4xl text-youtube-red mb-4">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white mb-2">Room-Based Watching</h3>
+                        <p class="text-discord-text">Create private rooms with unique codes and optional passwords</p>
+                    </div>
+                    
+                    <div class="bg-discord-darker p-6 rounded-xl">
+                        <div class="text-4xl text-blue-500 mb-4">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white mb-2">Perfect Sync</h3>
+                        <p class="text-discord-text">All viewers stay synchronized - play, pause, and seek together</p>
+                    </div>
+                    
+                    <div class="bg-discord-darker p-6 rounded-xl">
+                        <div class="text-4xl text-green-500 mb-4">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white mb-2">Real-Time Chat</h3>
+                        <p class="text-discord-text">Chat with friends while watching your favorite content</p>
+                    </div>
+                </div>
+
+                <!-- Call to Action -->
+                <div class="mt-12 space-x-4">
+                    <a href="{{ url_for('register') }}" 
+                       class="bg-discord-accent hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors inline-flex items-center">
+                        <i class="fas fa-user-plus mr-3"></i>
+                        Sign Up
+                    </a>
+                    <a href="{{ url_for('login') }}" 
+                       class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors inline-flex items-center">
+                        <i class="fas fa-sign-in-alt mr-3"></i>
+                        Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Home Page for Logged In Users -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="space-y-8">
+                <!-- Welcome Header -->
+                <div class="text-center space-y-4">
+                    <h1 class="text-4xl font-bold text-white">
+                        Welcome back, {{ current_user.display_name }}!
+                    </h1>
+                    <p class="text-discord-text text-lg">Create a new room or join an existing one to start watching together</p>
+                </div>
+
+                <!-- Action Cards -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Create Room Card -->
+                    <div class="bg-discord-darker p-8 rounded-xl">
+                        <div class="text-center space-y-6">
+                            <div class="text-5xl text-green-500">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <h2 class="text-2xl font-semibold text-white">Create New Room</h2>
+                            <p class="text-discord-text">Start a new watch party and invite your friends</p>
+                            
+                            <form method="POST" action="{{ url_for('create_room') }}" class="space-y-4">
+                                <input type="text" 
+                                       name="room_name" 
+                                       placeholder="Room Name" 
+                                       required
+                                       class="w-full px-4 py-3 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent">
+                                
+                                <input type="password" 
+                                       name="room_password" 
+                                       placeholder="Room Password (Optional)" 
+                                       class="w-full px-4 py-3 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent">
+                                
+                                <button type="submit" 
+                                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Create Room
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Join Room Card -->
+                    <div class="bg-discord-darker p-8 rounded-xl">
+                        <div class="text-center space-y-6">
+                            <div class="text-5xl text-discord-accent">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <h2 class="text-2xl font-semibold text-white">Join Existing Room</h2>
+                            <p class="text-discord-text">Enter a room code to join a watch party</p>
+                            
+                            <form method="POST" action="{{ url_for('join_room') }}" class="space-y-4">
+                                <input type="text" 
+                                       name="room_code" 
+                                       placeholder="6-Character Room Code" 
+                                       maxlength="6"
+                                       required
+                                       class="w-full px-4 py-3 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent uppercase">
+                                
+                                <input type="password" 
+                                       name="room_password" 
+                                       placeholder="Room Password (if required)" 
+                                       class="w-full px-4 py-3 bg-discord-darkest border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-discord-accent">
+                                
+                                <button type="submit" 
+                                        class="w-full bg-discord-accent hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>Join Room
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User's Rooms -->
+                {% if user_rooms %}
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-white text-center">Your Rooms</h2>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for room_data in user_rooms %}
+                            {% set room = room_data.room %}
+                            {% set role = room_data.role %}
+                            <div class="bg-discord-darker p-6 rounded-xl hover:bg-discord-dark transition-colors">
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold text-white truncate">{{ room.name }}</h3>
+                                        <span class="px-2 py-1 text-xs rounded-full {% if role == 'host' %}bg-green-600{% else %}bg-blue-600{% endif %} text-white">
+                                            {{ role.title() }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="text-discord-text space-y-2">
+                                        <p><i class="fas fa-key mr-2"></i>Code: <span class="font-mono">{{ room.room_code }}</span></p>
+                                        <p><i class="fas fa-users mr-2"></i>{{ room.member_count }} member{{ 's' if room.member_count != 1 else '' }}</p>
+                                        {% if room.password %}
+                                            <p><i class="fas fa-lock mr-2"></i>Password protected</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <a href="{{ url_for('room', room_code=room.room_code) }}" 
+                                       class="block w-full bg-discord-accent hover:bg-blue-600 text-white text-center py-2 rounded-lg font-medium transition-colors">
+                                        Enter Room
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-uppercase room code input
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomCodeInput = document.querySelector('input[name="room_code"]');
+        if (roomCodeInput) {
+            roomCodeInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        }
+    });
+</script>
+{% endblock %}

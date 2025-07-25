@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WatchWithMe{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'discord-dark': '#36393f',
+                        'discord-darker': '#2f3136',
+                        'discord-darkest': '#202225',
+                        'discord-text': '#dcddde',
+                        'discord-accent': '#5865f2',
+                        'youtube-red': '#ff0000',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-discord-darkest text-discord-text min-h-screen dark">
+    <!-- Navigation -->
+    <nav class="bg-discord-darker shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="flex items-center space-x-3">
+                        <i class="fas fa-play-circle text-3xl text-youtube-red"></i>
+                        <span class="text-xl font-bold text-white">WatchWithMe</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-discord-accent rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <span class="text-discord-text">{{ current_user.display_name }}</span>
+                            <a href="{{ url_for('logout') }}" 
+                               class="bg-red-200 hover:bg-red-500 text-white px-1 py-1 rounded-lg transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2 "></i>Logout
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ url_for('login') }}" 
+                               class="bg-discord-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Login
+                            </a>
+                            <a href="{{ url_for('register') }}" 
+                               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i class="fas fa-user-plus mr-2"></i>Sign Up
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-20 right-4 z-50 space-y-2">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} bg-{% if category == 'error' %}red{% elif category == 'success' %}green{% else %}blue{% endif %}-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
+                        <div class="flex items-center justify-between">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <script>
+                // Auto-hide flash messages after 5 seconds
+                setTimeout(() => {
+                    document.querySelectorAll('.alert').forEach(alert => {
+                        alert.style.animation = 'fadeOut 0.5s ease-out forwards';
+                        setTimeout(() => alert.remove(), 500);
+                    });
+                }, 5000);
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-discord-darker mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-discord-text">
+                <i class="fas fa-heart text-red-500 mr-1"></i>
+                  <h2 class="text-lg font-semibold">WatchWithMe</h2>
+    <p class="mt-2 italic">"Where moments are shared, not just watched."</p>
+    <p class="text-sm mt-3">&copy; <span id="year"></span> WatchWithMe. All rights reserved.</p>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Base JavaScript -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
