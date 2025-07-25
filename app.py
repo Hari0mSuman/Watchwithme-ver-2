@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-import routes
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -52,5 +52,3 @@ with app.app_context():
     logging.info("Database tables created")
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
