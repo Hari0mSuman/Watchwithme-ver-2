@@ -47,11 +47,11 @@
                 </div>
 
                 <!-- Call to Action -->
-                <div class="mt-12 space-x-4">
+                <div class="mt-12 space-x-4 ">
                     <a href="{{ url_for('register') }}" 
-                       class="bg-discord-accent hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors inline-flex items-center">
+                       class="bg-discord-accent hover:bg-blue-600 mb-4 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors inline-flex items-center">
                         <i class="fas fa-user-plus mr-3"></i>
-                        Sign Up
+                        Sign Up 
                     </a>
                     <a href="{{ url_for('login') }}" 
                        class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors inline-flex items-center">
@@ -105,7 +105,7 @@
                     </div>
 
                     <!-- Join Room Card -->
-                    <div class="bg-discord-darker p-8 rounded-xl">
+                    <div class="bg-discord-darker p-8  mb-4 rounded-xl">
                         <div class="text-center space-y-6">
                             <div class="text-5xl text-discord-accent">
                                 <i class="fas fa-door-open"></i>
@@ -137,13 +137,13 @@
 
                 <!-- User's Rooms -->
                 {% if user_rooms %}
-                <div class="space-y-6">
+                <div class="space-y-6 ">
                     <h2 class="text-2xl font-bold text-white text-center">Your Rooms</h2>
                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {% for room_data in user_rooms %}
                             {% set room = room_data.room %}
                             {% set role = room_data.role %}
-                            <div class="bg-discord-darker p-6 rounded-xl hover:bg-discord-dark transition-colors">
+                            <div class="bg-discord-darker p-6 mb-4 rounded-xl hover:bg-discord-dark transition-colors">
                                 <div class="space-y-4">
                                     <div class="flex items-center justify-between">
                                         <h3 class="text-lg font-semibold text-white truncate">{{ room.name }}</h3>
